@@ -1,0 +1,50 @@
+# Rust build output. Keep Cargo.lock tracked for reproducible app builds.
+/target/
+
+# Local SDK configuration.
+/.cargo/config
+/.cargo/config.toml
+
+# Downloaded transcription models and weights.
+/models/
+*.onnx
+*.onnx.data
+*.safetensors
+*.gguf
+ggml-*.bin
+
+# Local recordings and test audio/video.
+/samples/
+/recordings/
+*.wav
+*.mp3
+*.m4a
+*.aac
+*.flac
+*.ogg
+*.opus
+*.mp4
+*.m4v
+*.mov
+*.mkv
+*.webm
+*.avi
+
+# Generated transcripts and exports. Markdown documentation stays trackable.
+/transcripts/
+/output/
+/outputs/
+*.srt
+*.vtt
+
+# Local environment files; allow a shareable example.
+.env
+.env.*
+!.env.example
+
+# macOS metadata and editor temporary files.
+.DS_Store
+._*
+*.swp
+*.swo
+*~
