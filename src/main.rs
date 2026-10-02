@@ -4,7 +4,9 @@ use std::{
     time::Instant,
 };
 use transcribe_rs::{
-    SpeechModel, TranscribeError, onnx::Quantization, onnx::cohere::CohereModel,
+    SpeechModel, TranscribeError, TranscribeOptions,
+    audio::read_wav_samples,
+    onnx::{Quantization, cohere::CohereModel},
     whisper_cpp::WhisperEngine,
 };
 
@@ -43,6 +45,13 @@ fn load_speech_model(
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
 
+    let samples = read_wav_samples(&cli.audio_path)?;
+    if samples.is_empty() {
+        return Err(Box::new(TranscribeError::Audio(
+            "Failed to read the audio sample".to_owned(),
+        )));
+    }
+
     match cli.engine {
         Whisper => {
             transcribe_rs::set_whisper_accelerator(transcribe_rs::WhisperAccelerator::Gpu);
@@ -52,14 +61,22 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     };
     let start = Instant::now();
-    let model = load_speech_model(cli.engine, &cli.model_path)?;
+    let mut model = load_speech_model(cli.engine, &cli.model_path)?;
     let duration = start.elapsed();
 
-    let capabilities = model.capabilities();
+    let options = TranscribeOptions {
+        language: Some("en".to_owned()),
+        ..Default::default()
+    };
 
-    println!(
-        "{:?} | {:?} Hz | {:.2?}",
-        capabilities.name, capabilities.sample_rate, duration
+    let start_transcription = Instant::now();
+    let transcription = model.transcribe(&samples, &options)?;
+    let transcription_duration = start_transcription.elapsed();
+
+    println!("{}", transcription.text);
+    eprintln!(
+        "{:?} | {:.2?} | {:.2?}",
+        cli.engine, duration, transcription_duration
     );
 
     Ok(())
