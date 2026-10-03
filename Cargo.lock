@@ -846,6 +846,8 @@ name = "rustscribe"
 version = "0.1.0"
 dependencies = [
  "clap",
+ "hound",
+ "tempfile",
  "transcribe-rs",
 ]
 
