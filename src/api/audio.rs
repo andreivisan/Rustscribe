@@ -1,7 +1,32 @@
-use std::{path::Path, process::Command};
+use std::{
+    path::{Path, PathBuf},
+    process::Command,
+};
+
+/// Finder launches do not inherit a shell's Homebrew PATH.
+pub(crate) fn media_program(name: &str) -> PathBuf {
+    if let Some(path) = std::env::var_os(format!("RUSTSCRIBE_{}", name.to_ascii_uppercase())) {
+        return path.into();
+    }
+    if let Some(paths) = std::env::var_os("PATH") {
+        for directory in std::env::split_paths(&paths) {
+            let candidate = directory.join(name);
+            if candidate.is_file() {
+                return candidate;
+            }
+        }
+    }
+    for directory in ["/opt/homebrew/bin", "/usr/local/bin"] {
+        let candidate = Path::new(directory).join(name);
+        if candidate.is_file() {
+            return candidate;
+        }
+    }
+    name.into()
+}
 
 pub(super) fn extract_audio(input_path: &Path, output_path: &Path) -> std::io::Result<()> {
-    let output = Command::new("ffmpeg")
+    let output = Command::new(media_program("ffmpeg"))
         .arg("-hide_banner")
         .arg("-loglevel")
         .arg("error")
