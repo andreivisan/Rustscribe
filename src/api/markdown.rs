@@ -1,8 +1,33 @@
 use super::Transcript;
 
 pub fn render_markdown(transcript: &Transcript) -> String {
-    let mut output = String::from("## Transcript\n\n");
+    let mut output = String::new();
     let mut words_in_paragraph = 0;
+
+    let mut file_title = "Transcript".to_owned();
+
+    if let Some(title) = transcript.source.file_stem() {
+        let normalized = title.to_string_lossy().replace(['_', '-'], " ");
+
+        let trimmed = normalized.trim();
+
+        if !trimmed.is_empty() {
+            file_title = trimmed.to_owned();
+        }
+    }
+
+    let mut source_name = "Unknown source".to_owned();
+    if let Some(source) = transcript.source.file_name() {
+        source_name = source.to_string_lossy().into_owned();
+    }
+
+    output.push_str("# ");
+    push_escaped(&mut output, &file_title);
+    output.push_str("\n\n- **Source:** ");
+    push_escaped(&mut output, &source_name);
+    output.push_str("\n- **Engine:** ");
+    output.push_str(&transcript.engine.to_string());
+    output.push_str("\n\n## Transcript\n\n");
 
     for line in transcript.text.lines() {
         if line.trim().is_empty() {
