@@ -1,3 +1,10 @@
+use std::{
+    io::{Result, Write},
+    path::Path,
+};
+
+use tempfile::NamedTempFile;
+
 use super::Transcript;
 
 pub fn render_markdown(transcript: &Transcript) -> String {
@@ -58,6 +65,22 @@ pub fn render_markdown(transcript: &Transcript) -> String {
     }
 
     output
+}
+
+pub fn write_markdown(transcript: &Transcript, output_path: &Path) -> Result<()> {
+    let markdown = render_markdown(transcript);
+    let directory = match output_path.parent() {
+        Some(parent) if !parent.as_os_str().is_empty() => parent,
+        _ => Path::new("."),
+    };
+    std::fs::create_dir_all(directory)?;
+    let mut temporary = NamedTempFile::new_in(directory)?;
+    temporary.write_all(markdown.as_bytes())?;
+    temporary.flush()?;
+    match temporary.persist_noclobber(output_path) {
+        Ok(_) => Ok(()),
+        Err(problem) => Err(problem.error),
+    }
 }
 
 fn push_escaped(output: &mut String, text: &str) {

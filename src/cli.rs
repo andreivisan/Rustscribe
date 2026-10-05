@@ -1,7 +1,7 @@
 use std::{path::PathBuf, time::Instant};
 
 use clap::{Parser, ValueEnum};
-use rustscribe::api::{ApiResult, EngineKind, TranscriptionEngine};
+use rustscribe::api::{ApiResult, EngineKind, TranscriptionEngine, write_markdown};
 
 #[derive(Debug, Clone, Copy, ValueEnum)]
 enum CliEngine {
@@ -24,15 +24,22 @@ struct Cli {
     engine: CliEngine,
     model_path: PathBuf,
     input_path: PathBuf,
+    #[arg(short, long)]
+    output: Option<PathBuf>,
 }
 
 pub(crate) fn run() -> ApiResult<()> {
     let cli = Cli::parse();
+    let output_path = cli
+        .output
+        .unwrap_or_else(|| cli.input_path.with_extension("md"));
     let start = Instant::now();
     let mut engine = TranscriptionEngine::load(cli.engine.into(), &cli.model_path)?;
     let load_duration = start.elapsed();
 
     let transcript = engine.transcribe(&cli.input_path)?;
+    write_markdown(&transcript, &output_path)?;
+    eprintln!("Saved {}", output_path.display());
 
     println!("{}", transcript.text);
     eprintln!(
