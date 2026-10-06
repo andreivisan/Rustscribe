@@ -3,7 +3,7 @@
     <img src="./docs/images/icon.png" alt="Rustscribe" width="50%">
   </p>
 
-  [![CI](https://github.com/andreivisan/Rustscribe/actions/workflows/ci.yml/badge.svg)](https://github.com/andreivisan/Rustscribe/actions/workflows/ci.yml)
+  [![Tests](https://github.com/andreivisan/Rustscribe/actions/workflows/ci.yml/badge.svg)](https://github.com/andreivisan/Rustscribe/actions/workflows/ci.yml)
 
 </div>
 
