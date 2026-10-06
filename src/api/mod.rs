@@ -1,6 +1,6 @@
 //! Local transcription shared by the CLI, desktop app, and other consumers.
 
-mod audio;
+pub(crate) mod audio;
 mod engine;
 mod markdown;
 mod types;
