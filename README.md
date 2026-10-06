@@ -1,11 +1,12 @@
 <p align="center">
   <img src="./docs/images/icon.png" alt="Rustscribe" width="50%">
+  </br>
+  
+  [![CI](https://github.com/andreivisan/Rustscribe/actions/workflows/ci.yml/badge.svg)](https://github.com/andreivisan/Rustscribe/actions/workflows/ci.yml)
 </p>
 
 
 # Welcome to Rustscribe
-
-[![CI](https://github.com/andreivisan/Rustscribe/actions/workflows/ci.yml/badge.svg)](https://github.com/andreivisan/Rustscribe/actions/workflows/ci.yml)
 
 Rustscribe is a native macOS app for turning local video and audio into readable Markdown. Built in Rust with GPUI, with a media shelf inspired by [DropFile](https://dribbble.com/shots/22619137-DropFile-MacOS-App).
 
