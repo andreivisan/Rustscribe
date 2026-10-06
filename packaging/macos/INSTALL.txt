@@ -1,0 +1,42 @@
+RUSTSCRIBE — macOS prerelease
+
+Requires an Apple Silicon Mac (M1 or later) running macOS 15 or later.
+This release is not signed with an Apple Developer ID and is not notarized.
+It uses an ad-hoc code signature. The download is labelled "unsigned".
+
+INSTALL
+1. Drag Rustscribe.app onto the Applications shortcut in this disk image.
+2. Eject the disk image, then open Rustscribe from Applications.
+3. If macOS blocks the app, and you trust this download, open System Settings >
+   Privacy & Security and choose Open Anyway after attempting to launch it.
+   Apple's instructions: https://support.apple.com/en-us/102445
+
+BEFORE TRANSCRIBING
+Install FFmpeg and ffprobe. With Homebrew: brew install ffmpeg
+Rustscribe discovers them in /opt/homebrew/bin or on PATH.
+Custom locations can use RUSTSCRIBE_FFMPEG and RUSTSCRIBE_FFPROBE.
+No Rust compiler or Xcode installation is needed to run the app.
+
+Download a local model separately and select it in Rustscribe Settings (Cmd+,):
+- Whisper: a whisper.cpp .bin model, such as ggml-large-v3-turbo.bin (Metal).
+- Cohere: the int8 ONNX model directory, including encoder, decoder, external
+  weights and tokens.txt (CPU).
+Suggested Whisper model source:
+https://huggingface.co/ggerganov/whisper.cpp/tree/main
+Cohere int8 model source (download the three cohere-* files and tokens.txt into one folder):
+https://huggingface.co/tristanripke/cohere-transcribe-onnx-int8/tree/main
+Models and FFmpeg are not included in this download.
+
+USE
+Drop local videos/audio into the app or press Cmd+O. Choose an engine, transcribe,
+then export Markdown. Export transcripts before quitting: the queue is session-only.
+Transcription runs locally, currently in English. Media and transcripts are not uploaded.
+Settings live in ~/Library/Application Support/Rustscribe/settings.json.
+
+VERIFY THE DOWNLOAD
+Download the .dmg.sha256 file alongside the DMG. In that directory run:
+  shasum -a 256 -c Rustscribe-<version>-macos-arm64-unsigned.dmg.sha256
+
+Source code, instructions and issue tracker:
+https://github.com/andreivisan/Rustscribe
+Rustscribe is MIT licensed. Dependency notices are inside the app's Resources folder.

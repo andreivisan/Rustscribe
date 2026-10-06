@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Rustscribe — dependency licenses</title>
+<style>body{max-width:70rem;margin:3rem auto;padding:0 2rem;font:16px system-ui}pre{white-space:pre-wrap}section{border-top:1px solid #aaa;margin-top:2rem}</style>
+</head><body><h1>Rustscribe dependency licenses</h1>
+<p>These notices cover Rust dependencies included in the macOS build.
+Native ONNX Runtime and whisper.cpp notices are in the adjacent NativeLicenses folder.
+Source code for each Rust crate is available from its linked crates.io page.</p>
+{{#each licenses}}
+<section><h2>{{name}}</h2><ul>
+{{#each used_by}}<li><a href="https://crates.io/crates/{{crate.name}}/{{crate.version}}">{{crate.name}} {{crate.version}}</a></li>{{/each}}
+</ul><pre>{{text}}</pre></section>
+{{/each}}
+</body></html>
