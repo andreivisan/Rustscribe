@@ -1,10 +1,12 @@
 <p align="center">
   <img src="./docs/images/icon.png" alt="Rustscribe" width="50%">
-  </br>
-  
-  [![CI](https://github.com/andreivisan/Rustscribe/actions/workflows/ci.yml/badge.svg)](https://github.com/andreivisan/Rustscribe/actions/workflows/ci.yml)
 </p>
 
+<p align="center">
+
+  [![CI](https://github.com/andreivisan/Rustscribe/actions/workflows/ci.yml/badge.svg)](https://github.com/andreivisan/Rustscribe/actions/workflows/ci.yml)
+
+  </p>
 
 # Welcome to Rustscribe
 
