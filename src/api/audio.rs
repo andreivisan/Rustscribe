@@ -25,6 +25,9 @@ pub(crate) fn media_program(name: &str) -> PathBuf {
     name.into()
 }
 
+#[cfg(test)]
+mod tests;
+
 pub(super) fn extract_audio(input_path: &Path, output_path: &Path) -> std::io::Result<()> {
     let output = Command::new(media_program("ffmpeg"))
         .arg("-hide_banner")

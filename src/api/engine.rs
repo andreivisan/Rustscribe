@@ -9,6 +9,9 @@ use transcribe_rs::{
 
 use super::{ApiResult, EngineKind, Transcript, audio::extract_audio};
 
+#[cfg(test)]
+mod tests;
+
 static CONFIGURE_ACCELERATORS: Once = Once::new();
 
 /// Owns one loaded model and reuses it across transcription jobs.

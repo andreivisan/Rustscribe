@@ -5,6 +5,9 @@ use std::{
     path::{Path, PathBuf},
 };
 
+#[cfg(test)]
+mod tests;
+
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub(super) enum Model {
     #[default]
@@ -50,7 +53,29 @@ pub(super) struct Settings {
 
 impl Settings {
     pub fn load() -> (Self, Option<String>) {
-        let (mut settings, error) = match std::fs::read(Self::directory().join("settings.json")) {
+        let directory = Self::directory();
+        let mut roots = vec![directory.join("models")];
+        if let Ok(cwd) = std::env::current_dir() {
+            roots.push(cwd.join("models"));
+        }
+        if let Ok(executable) = std::env::current_exe() {
+            roots.extend(
+                executable
+                    .ancestors()
+                    .take(6)
+                    .map(|path| path.join("models")),
+            );
+        }
+        Self::load_from(&directory, roots)
+    }
+
+    // Explicit paths keep persistence testable without changing process-wide
+    // environment variables or touching the user's actual preferences.
+    fn load_from(
+        directory: &Path,
+        roots: impl IntoIterator<Item = PathBuf>,
+    ) -> (Self, Option<String>) {
+        let (mut settings, error) = match std::fs::read(directory.join("settings.json")) {
             Ok(bytes) => match serde_json::from_slice::<Self>(&bytes) {
                 Ok(value) => (value, None),
                 Err(error) => (
@@ -64,18 +89,6 @@ impl Settings {
                 Some(format!("Could not read saved settings: {error}")),
             ),
         };
-        let mut roots = vec![Self::directory().join("models")];
-        if let Ok(cwd) = std::env::current_dir() {
-            roots.push(cwd.join("models"));
-        }
-        if let Ok(executable) = std::env::current_exe() {
-            roots.extend(
-                executable
-                    .ancestors()
-                    .take(6)
-                    .map(|path| path.join("models")),
-            );
-        }
         for root in roots {
             let whisper = root.join("ggml-large-v3-turbo.bin");
             let cohere = root.join("cohere-int8");
@@ -106,9 +119,12 @@ impl Settings {
     }
 
     pub fn save(&self) -> io::Result<()> {
-        let directory = Self::directory();
-        std::fs::create_dir_all(&directory)?;
-        let mut file = tempfile::NamedTempFile::new_in(&directory)?;
+        self.save_to(&Self::directory())
+    }
+
+    fn save_to(&self, directory: &Path) -> io::Result<()> {
+        std::fs::create_dir_all(directory)?;
+        let mut file = tempfile::NamedTempFile::new_in(directory)?;
         serde_json::to_writer_pretty(&mut file, self)?;
         file.write_all(b"\n")?;
         file.flush()?;

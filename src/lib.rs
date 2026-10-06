@@ -2,5 +2,8 @@
 
 pub mod api;
 
+#[cfg(test)]
+mod test_support;
+
 #[cfg(feature = "desktop")]
 pub mod gpui;

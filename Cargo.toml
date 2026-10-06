@@ -3,6 +3,9 @@ name = "rustscribe"
 version = "0.1.0"
 edition = "2024"
 default-run = "rustscribe"
+description = "Local video and audio transcription to Markdown, with a native macOS desktop app"
+license = "MIT"
+repository = "https://github.com/andreivisan/Rustscribe"
 
 [features]
 default = []
