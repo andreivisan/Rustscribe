@@ -219,6 +219,128 @@ fn export(transcript: &Transcript, path: PathBuf, unique: bool) -> std::io::Resu
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn transcript() -> Arc<Transcript> {
+        Arc::new(Transcript {
+            source: "lecture.webm".into(),
+            engine: crate::api::EngineKind::Whisper,
+            text: "Local transcription.".into(),
+            extraction_duration: Default::default(),
+            transcription_duration: Default::default(),
+        })
+    }
+
+    fn receive(events: &Receiver<Event>) -> Event {
+        events
+            .recv_timeout(std::time::Duration::from_secs(10))
+            .expect("worker did not respond")
+    }
+
+    #[test]
+    fn cancelled_queue_finishes_without_loading_models_and_worker_still_exports() {
+        let directory = tempfile::tempdir().unwrap();
+        let path = directory.path().join("notes.md");
+        let (commands, events) = spawn();
+        commands
+            .send(Command::Transcribe {
+                jobs: vec![(7, "missing.webm".into())],
+                model: Model::Whisper,
+                path: "nonexistent-model.bin".into(),
+                cancel: Arc::new(AtomicBool::new(true)),
+            })
+            .unwrap();
+        // No Started or Completed event: cancellation must happen before loading.
+        assert!(matches!(receive(&events), Event::BatchFinished));
+        commands
+            .send(Command::Export {
+                id: 42,
+                transcript: transcript(),
+                path: path.clone(),
+                unique: false,
+            })
+            .unwrap();
+        assert!(
+            matches!(receive(&events), Event::Exported { id: 42, result: Ok(saved) } if saved == path)
+        );
+        assert_eq!(
+            std::fs::read_to_string(path).unwrap(),
+            crate::api::render_markdown(&transcript())
+        );
+        drop(commands);
+        assert!(matches!(
+            events.recv_timeout(std::time::Duration::from_secs(10)),
+            Err(mpsc::RecvTimeoutError::Disconnected)
+        ));
+    }
+
+    #[test]
+    fn export_error_is_reported_and_does_not_kill_the_worker() {
+        let directory = tempfile::tempdir().unwrap();
+        let path = directory.path().join("notes.md");
+        std::fs::write(&path, "edited notes").unwrap();
+        let (commands, events) = spawn();
+        for unique in [false, true] {
+            commands
+                .send(Command::Export {
+                    id: 3,
+                    transcript: transcript(),
+                    path: path.clone(),
+                    unique,
+                })
+                .unwrap();
+            match receive(&events) {
+                Event::Exported { id: 3, result } if unique => {
+                    assert_eq!(result.unwrap(), directory.path().join("notes (1).md"));
+                }
+                Event::Exported { id: 3, result } => assert!(result.is_err()),
+                _ => panic!("expected an export event for file 3"),
+            }
+        }
+        assert_eq!(std::fs::read_to_string(path).unwrap(), "edited notes");
+    }
+
+    #[test]
+    fn inspection_returns_duration_and_a_real_thumbnail() {
+        let directory = Arc::new(tempfile::tempdir().unwrap());
+        let path = directory.path().join("clip.webm");
+        crate::test_support::video(&path, true);
+        let (commands, events) = spawn();
+        commands
+            .send(Command::Inspect {
+                id: 9,
+                path,
+                cache: Arc::clone(&directory),
+            })
+            .unwrap();
+        match receive(&events) {
+            Event::Inspected {
+                id: 9,
+                duration,
+                thumbnail,
+            } => {
+                assert!((0.2..0.5).contains(&duration.unwrap()));
+                let thumbnail = thumbnail.unwrap();
+                assert_eq!(thumbnail, directory.path().join("9.png"));
+                assert!(
+                    std::fs::read(thumbnail)
+                        .unwrap()
+                        .starts_with(b"\x89PNG\r\n\x1a\n")
+                );
+            }
+            _ => panic!("expected an inspection event for file 9"),
+        }
+    }
+
+    #[test]
+    fn unrecognized_media_has_no_duration_or_thumbnail() {
+        let directory = tempfile::tempdir().unwrap();
+        let path = directory.path().join("broken.webm");
+        std::fs::write(&path, "not media").unwrap();
+        let (duration, thumbnail) = inspect(&path, &directory.path().join("preview.png"));
+        assert!(duration.is_none());
+        assert!(thumbnail.is_none());
+    }
+
     #[test]
     fn exports_never_replace_existing_work() {
         let directory = tempfile::tempdir().unwrap();

@@ -7,6 +7,9 @@ use tempfile::NamedTempFile;
 
 use super::Transcript;
 
+#[cfg(test)]
+mod tests;
+
 pub fn render_markdown(transcript: &Transcript) -> String {
     let mut output = String::new();
     let mut words_in_paragraph = 0;

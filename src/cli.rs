@@ -52,3 +52,44 @@ pub(crate) fn run() -> ApiResult<()> {
 
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parses_both_engines_and_paths_with_spaces() {
+        for (name, kind) in [
+            ("whisper", EngineKind::Whisper),
+            ("cohere", EngineKind::Cohere),
+        ] {
+            let cli = Cli::try_parse_from([
+                "rustscribe",
+                name,
+                "models/my model",
+                "videos/my lesson.webm",
+            ])
+            .unwrap();
+            assert_eq!(EngineKind::from(cli.engine).to_string(), kind.to_string());
+            assert_eq!(cli.model_path, PathBuf::from("models/my model"));
+            assert_eq!(cli.input_path, PathBuf::from("videos/my lesson.webm"));
+            assert!(cli.output.is_none());
+        }
+    }
+
+    #[test]
+    fn accepts_short_and_long_output_flags() {
+        for flag in ["-o", "--output"] {
+            let cli = Cli::try_parse_from([
+                "rustscribe",
+                "whisper",
+                "model.bin",
+                "video.webm",
+                flag,
+                "notes/my lesson.md",
+            ])
+            .unwrap();
+            assert_eq!(cli.output, Some(PathBuf::from("notes/my lesson.md")));
+        }
+    }
+}

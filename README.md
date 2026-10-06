@@ -5,6 +5,8 @@
 
 # Welcome to Rustscribe
 
+[![CI](https://github.com/andreivisan/Rustscribe/actions/workflows/ci.yml/badge.svg)](https://github.com/andreivisan/Rustscribe/actions/workflows/ci.yml)
+
 Rustscribe is a native macOS app for turning local video and audio into readable Markdown. Built in Rust with GPUI, with a media shelf inspired by [DropFile](https://dribbble.com/shots/22619137-DropFile-MacOS-App).
 
 ## Run the desktop app
@@ -65,8 +67,27 @@ cargo run --release -- cohere models/cohere-int8 "/path/to/video.webm" -o transc
 
 The worker reuses a loaded model for sequential files and releases it before switching engines. This keeps the UI responsive without duplicating large model allocations. Temporary audio and thumbnails are cleaned up automatically.
 
+## Tests and contributing
+
+Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for development
+setup, the test layout, and optional real-model checks. CI runs on Apple Silicon
+macOS for every push and pull request, covering the API, CLI, and desktop worker
+and settings, plus formatting, Clippy, and building both binaries.
+
 ```sh
 cargo fmt --all -- --check
-cargo clippy --all-targets --features desktop -- -D warnings
-cargo test --features desktop --lib
+cargo clippy --locked --all-targets --all-features -- -D warnings
+cargo test --locked --all-targets
+cargo test --locked --all-targets --all-features
 ```
+
+The regular suite requires FFmpeg but no model downloads or API keys. It generates
+small media fixtures and uses a recording model to test chunking deterministically.
+Real Whisper/Cohere smoke tests are opt-in; native UI interactions and
+transcription accuracy still need manual checks. The badge above reports the
+actual GitHub Actions result.
+
+## License
+
+Rustscribe's source code is licensed under [MIT](LICENSE). Third-party dependencies
+and model weights retain their own licenses.
